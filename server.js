@@ -1,5 +1,6 @@
 const express = require('express');
 const pool = require('./database/config');
+const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
@@ -8,6 +9,14 @@ const PORT = process.env.PORT || 3000;
 // Middlewares
 
 app.use(express.json());
+
+const corsOptions = {
+  origin: ['http://localhost:3000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 // Routes
 app.get('/', (req, res) => {
