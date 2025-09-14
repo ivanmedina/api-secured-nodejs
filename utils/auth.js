@@ -18,12 +18,17 @@ const generateToken = (user) => {
       role: user.role 
     },
     process.env.JWT_SECRET,
-    { expiresIn: '24h' }
+    { 
+      expiresIn: '24h',
+      "issuer": process.env.JWT_ISSUER
+     }
   );
 };
 
 const verifyToken = (token) => {
-  return jwt.verify(token, process.env.JWT_SECRET);
+  return jwt.verify(token, process.env.JWT_SECRET,{
+    issuer: process.env.JWT_ISSUER
+  });
 };
 
 module.exports = {
