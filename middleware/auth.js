@@ -1,6 +1,7 @@
 const { verifyToken } = require('../utils/auth');
 
 const authenticateToken = (req, res, next) => {
+
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -9,12 +10,15 @@ const authenticateToken = (req, res, next) => {
   }
 
   try {
+    
     const decoded = verifyToken(token);
     req.user = decoded;
     next();
+    
   } catch (err) {
     return res.status(403).json({ error: 'Token inválido' });
   }
+
 };
 
 const requireAdmin = (req, res, next) => {
@@ -25,8 +29,8 @@ const requireAdmin = (req, res, next) => {
 };
 
 const requireOwnershipOrAdmin = (req, res, next) => {
-  const requestedUserId = parseInt(req.params.id);
-  const currentUserId = req.user.id;
+  const requestedUserId = req.params.uuid;
+  const currentUserId = req.user.uuid;
   const isAdmin = req.user.role === 'admin';
 
   if (!isAdmin && currentUserId !== requestedUserId) {

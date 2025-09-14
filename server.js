@@ -1,4 +1,5 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const pool = require('./database/config');
 const cors = require('cors');
 require('dotenv').config();
@@ -11,6 +12,20 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middlewares
+
+// Rate limit
+
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100, 
+  message: { 
+    error: 'Too many requests from this IP, please try again later.' 
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(globalLimiter); 
 
 app.use(express.json());
 
@@ -37,11 +52,11 @@ app.get('/users',authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-app.get('/users/:id', authenticateToken,requireOwnershipOrAdmin, async (req, res) => {
+app.get('/users/:uuid', authenticateToken, requireOwnershipOrAdmin, async (req, res) => {
     try {
 
-      const { id } = req.params;
-      const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+      const { uuid } = req.params;
+      const result = await pool.query('SELECT * FROM users WHERE uuid = $1', [uuid]);
       
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'User not found' });
@@ -53,6 +68,21 @@ app.get('/users/:id', authenticateToken,requireOwnershipOrAdmin, async (req, res
       console.error(err);
       res.status(500).json({ error: 'Error obtaining user' });
     }
+});
+
+app.get('/users/:uuid/files', authenticateToken, requireOwnershipOrAdmin, async (req, res) => {
+  try {
+
+      const { uuid } = req.params;
+      const result = await pool.query('SELECT * FROM files WHERE user_uuid = $1', [uuid]);
+      
+      res.json(result.rows);
+
+  } catch (err) {
+
+      console.error(err);
+      res.status(500).json({ error: 'Error obtaining files' });
+  }
 });
 
 app.post('/login', async (req, res) => {

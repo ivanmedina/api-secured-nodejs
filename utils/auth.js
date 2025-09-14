@@ -13,7 +13,7 @@ const verifyPassword = async (password, hashedPassword) => {
 const generateToken = (user) => {
   return jwt.sign(
     { 
-      id: user.id, 
+      uuid: user.uuid, 
       email: user.email, 
       role: user.role 
     },
