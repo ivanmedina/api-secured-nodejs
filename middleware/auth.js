@@ -6,7 +6,7 @@ const authenticateToken = (req, res, next) => {
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ error: 'Token de acceso requerido' });
+    return res.status(401).json({ error: 'Access token required' });
   }
 
   try {
@@ -16,14 +16,14 @@ const authenticateToken = (req, res, next) => {
     next();
     
   } catch (err) {
-    return res.status(403).json({ error: 'Token inválido' });
+    return res.status(403).json({ error: 'Invalid token' });
   }
 
 };
 
 const requireAdmin = (req, res, next) => {
   if (req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Acceso denegado. Se requiere rol de administrador' });
+    return res.status(403).json({ error: 'Access denied. Administrator role required.' });
   }
   next();
 };
@@ -34,7 +34,7 @@ const requireOwnershipOrAdmin = (req, res, next) => {
   const isAdmin = req.user.role === 'admin';
 
   if (!isAdmin && currentUserId !== requestedUserId) {
-    return res.status(403).json({ error: 'No puedes acceder a datos de otros usuarios' });
+    return res.status(403).json({ error: 'You cannot access other users\' data.' });
   }
   
   next();
