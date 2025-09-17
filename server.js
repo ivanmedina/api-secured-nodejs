@@ -5,6 +5,7 @@ const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 
 const pool = require('./database/config');
 require('dotenv').config();
@@ -14,7 +15,6 @@ const { authenticateToken,requireAdmin,requireOwnershipOrAdmin } = require('./mi
 
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // Storage
 
@@ -165,6 +165,50 @@ app.post('/users/:uuid/files', authenticateToken, requireOwnershipOrAdmin, uploa
   }
 });
 
+// GET /users/:uuid/files/:fileUuid/download
+app.get('/users/:uuid/files/:fileUuid/download', authenticateToken, requireOwnershipOrAdmin, async (req, res) => {
+  try {
+      const { uuid, fileUuid } = req.params;
+      
+      const result = await pool.query(
+          'SELECT * FROM files WHERE uuid = $1 AND user_uuid = $2',
+          [fileUuid, uuid]
+      );
+      
+      if (result.rows.length === 0) {
+          return res.status(404).json({ error: 'File not found' });
+      }
+      
+      const fileRecord = result.rows[0];
+      const filePath = path.join(__dirname, fileRecord.filepath);
+      
+      if (!fs.existsSync(filePath)) {
+          return res.status(404).json({ error: 'File not found on disk' });
+      }
+      
+      const stats = fs.statSync(filePath);
+      const originalName = fileRecord.filename.split('_').slice(1).join('_');
+      
+      res.setHeader('Content-Disposition', `attachment; filename="${originalName}"`);
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader('Content-Length', stats.size);
+      
+      const fileStream = fs.createReadStream(filePath);
+      
+      fileStream.on('error', (error) => {
+          console.error('Error reading file:', error);
+          if (!res.headersSent) {
+              res.status(500).json({ error: 'Error reading file' });
+          }
+      });
+      
+      fileStream.pipe(res);
+      
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Error downloading file' });
+  }
+});
 
 app.post('/login', async (req, res) => {
 
@@ -267,10 +311,23 @@ app.post('/register', async (req, res) => {
     res.status(500).json({ error: "Error during registration" });
   }
 });
+
 app.use(handleMulterErrors);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port: ${PORT}`);
+const privateKey = fs.readFileSync(path.join(__dirname, 'certificates', 'private-key.pem'), 'utf8');
+const certificate = fs.readFileSync(path.join(__dirname, 'certificates', 'certificate.pem'), 'utf8');
+
+const credentials = {
+  key: privateKey,
+  cert: certificate
+};
+
+const httpsServer = https.createServer(credentials, app);
+
+const PORT = process.env.PORT || 3000;
+
+httpsServer.listen(PORT, () => {
+  console.log(`Server running on: https://localhost:${PORT}/`);
 });
 
 module.exports = app;
