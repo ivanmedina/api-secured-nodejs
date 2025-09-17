@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const helmet = require('helmet');
 
 const pool = require('./database/config');
 require('dotenv').config();
@@ -75,19 +76,26 @@ const globalLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.use(globalLimiter); 
 
-app.use(express.json());
+
 
 // CORS
 
 const corsOptions = {
-  origin: ['http://localhost:3000'],
+  origin: [
+    'http://localhost:3000',
+    'https://localhost:3000',
+    'localhost:3000'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
 };
 
 app.use(cors(corsOptions));
+app.use(globalLimiter); 
+app.use(helmet());
+app.use(express.json());
+
 
 // Routes
 
