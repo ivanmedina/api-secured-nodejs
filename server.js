@@ -13,7 +13,7 @@ require('dotenv').config();
 
 const { hashPassword, verifyPassword, generateToken } = require('./utils/auth');
 const { authenticateToken,requireAdmin,requireOwnershipOrAdmin } = require('./middleware/auth');
-
+const antiSmuggling = require('./middleware/antiSmuggling');
 
 const app = express();
 
@@ -91,6 +91,7 @@ const corsOptions = {
   credentials: true,
 };
 
+app.use(antiSmuggling);
 app.use(cors(corsOptions));
 app.use(globalLimiter); 
 app.use(helmet());
