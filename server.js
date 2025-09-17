@@ -7,6 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const helmet = require('helmet');
+const hpp = require('hpp');
 
 const pool = require('./database/config');
 require('dotenv').config();
@@ -92,6 +93,7 @@ const corsOptions = {
 };
 
 app.use(antiSmuggling);
+app.use(hpp());
 app.use(cors(corsOptions));
 app.use(globalLimiter); 
 app.use(helmet());
