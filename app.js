@@ -1,8 +1,4 @@
 const express = require('express');
-const multer = require('multer');
-const fs = require('fs');
-const path = require('path');
-const https = require('https');
 
 require('dotenv').config();
 
@@ -15,7 +11,6 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 
 const app = express();
-
 
 configureMiddlewares(app);
 

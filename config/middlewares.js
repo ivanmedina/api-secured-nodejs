@@ -5,7 +5,6 @@ const helmet = require('helmet');
 const hpp = require('hpp');
 
 const antiSmuggling = require('../middleware/antiSmuggling');
-// const { handleMulterErrors } = require('../middleware/multerErrors');
 
 // Rate limit
 const globalLimiter = rateLimit({
@@ -36,7 +35,6 @@ const configureMiddlewares = (app) => {
   app.use(globalLimiter); 
   app.use(helmet());
   app.use(express.json());
-//   app.use(handleMulterErrors);
 };
 
 module.exports = { configureMiddlewares };
